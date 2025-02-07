@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2022-2025 mini_bomba
 //
-import { emptyResponse, errorResponse, fetchResponse } from "../responses.ts";
+import { emptyResponse, errorResponse, fetchResponse, textResponse } from "../responses.ts";
 import { PullRequestReviewEvent } from "npm:@octokit/webhooks-types";
 
 export default async function handlePRReviewEvent(request: Request, webhook_url: string): Promise<Response> {
@@ -14,9 +14,28 @@ export default async function handlePRReviewEvent(request: Request, webhook_url:
     return errorResponse(e);
   }
 
-  // not needed, sometimes sent right after a "submitted" event
-  if (event.action === "edited") return emptyResponse(204);
+  switch (event.action) {
+    case "submitted": {
+      return await handleReviewSubmitted(event, request, webhook_url);
+    }
+    case "edited": {
+      // don't care
+      return emptyResponse(204);
+    }
+    case "dismissed": {
+      return await handleReviewDismissed(event, webhook_url);
+    }
+    default: {
+      return textResponse("how did we get here?", 500);
+    }
+  }
+}
 
+async function handleReviewSubmitted(
+  event: PullRequestReviewEvent,
+  request: Request,
+  webhook_url: string,
+): Promise<Response> {
   // these are sent when a comment is added to the review
   // discord does not know this
   if (event.review.state === "commented") {
@@ -49,5 +68,28 @@ export default async function handlePRReviewEvent(request: Request, webhook_url:
     method: "POST",
     headers: request.headers,
     body: JSON.stringify(event),
+  });
+}
+
+async function handleReviewDismissed(event: PullRequestReviewEvent, webhook_url: string): Promise<Response> {
+  return await fetchResponse(webhook_url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    body: JSON.stringify({
+      username: "GitHub",
+      avatar_url: "https://cdn.discordapp.com/attachments/743515515799994489/996513463650226327/unknown.png",
+      embeds: [{
+        author: {
+          name: event.sender.login,
+          url: event.sender.html_url,
+          icon_url: event.sender.avatar_url,
+        },
+        title:
+          `[${event.repository.full_name}] Pull request review dismissed: #${event.pull_request.number} ${event.pull_request.title}`,
+        description: `**${event.sender.login}** dismissed **${event.review.user.login}**'s review`,
+        url: event.pull_request.html_url,
+        color: 0x212830,
+      }],
+    }),
   });
 }

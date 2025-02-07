@@ -11,15 +11,16 @@ export default async function handleReleaseEvent(request: Request, webhook_url: 
   try {
     event = await request.json();
   } catch (e) {
-    return errorResponse(e)
+    return errorResponse(e);
   }
 
-  if (event.action !== "published") // Not published -> forward to discord
+  if (event.action !== "published") { // Not published -> forward to discord
     return await fetchResponse(`${webhook_url}/github`, {
       method: "POST",
       headers: request.headers,
       body: JSON.stringify(event),
     });
+  }
 
   // release published -> create new embed with more data
   return await fetchResponse(webhook_url, {

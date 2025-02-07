@@ -14,6 +14,6 @@ export const eventHandlers: Record<string, (req: Request, webhook_url: string) =
   pull_request: handlePREvent,
   pull_request_review: handlePRReviewEvent,
   release: handleReleaseEvent,
-}
+};
 
 export const defaultHandler = (req: Request, webhook_url: string) => fetchResponse(`${webhook_url}/github`, req);

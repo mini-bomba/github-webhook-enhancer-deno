@@ -13,16 +13,16 @@ export default async function handleIssueEvent(request: Request, webhook_url: st
   } catch (e) {
     return errorResponse(e);
   }
-  
+
   let action: string;
   let color: number;
-  switch(event.action) {
+  switch (event.action) {
     case "reopened":
       action = "reopened";
       color = 0x1f883d;
       break;
     case "closed":
-      action = `closed as ${event.issue.state_reason!.replaceAll('_', ' ')}`;
+      action = `closed as ${event.issue.state_reason!.replaceAll("_", " ")}`;
       if (event.issue.state_reason === "not_planned") {
         color = 0x212830;
       } else {
@@ -37,7 +37,7 @@ export default async function handleIssueEvent(request: Request, webhook_url: st
         body: JSON.stringify(event),
       });
   }
-  
+
   return await fetchResponse(webhook_url, {
     method: "POST",
     headers: { "Content-Type": "application/json;charset=UTF-8" },

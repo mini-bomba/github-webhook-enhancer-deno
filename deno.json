@@ -4,5 +4,10 @@
   },
   "imports": {
     "@octokit/webhooks-types": "npm:@octokit/webhooks-types@^7.6.1"
+  },
+  "fmt": {
+    "lineWidth": 125,
+    "useTabs": false,
+    "indentWidth": 2
   }
 }

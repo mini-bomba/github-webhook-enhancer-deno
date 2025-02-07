@@ -7,9 +7,9 @@ import { defaultHandler, eventHandlers } from "./handlers/index.ts";
 import { emptyResponse, redirect, textResponse } from "./responses.ts";
 
 interface Route {
-  methods: string[],
-  paths: URLPattern[],
-  handler: (match: URLPatternResult, req: Request) => Promise<Response>,
+  methods: string[];
+  paths: URLPattern[];
+  handler: (match: URLPatternResult, req: Request) => Promise<Response>;
 }
 
 const ROUTES: Route[] = [];
@@ -18,14 +18,14 @@ const TOKEN_REGEX = /^[\w_-]+$/;
 
 ROUTES.push({
   methods: ["POST"],
-  paths: [new URLPattern({pathname: "{/api}?{/webhooks}?/:channel_id/:token{/github}?"})],
+  paths: [new URLPattern({ pathname: "{/api}?{/webhooks}?/:channel_id/:token{/github}?" })],
   handler: async (match: URLPatternResult, req: Request): Promise<Response> => {
-    const {channel_id, token} = match.pathname.groups;
+    const { channel_id, token } = match.pathname.groups;
     if (
-      channel_id == undefined 
-        || token == undefined 
-        || !NUMBER_REGEX.test(channel_id) 
-        || !TOKEN_REGEX.test(token)
+      channel_id == undefined ||
+      token == undefined ||
+      !NUMBER_REGEX.test(channel_id) ||
+      !TOKEN_REGEX.test(token)
     ) {
       return textResponse("Invalid discord webhook ID/token", 401);
     }
@@ -34,24 +34,24 @@ ROUTES.push({
     const event_name = req.headers.get("X-GitHub-Event") ?? "";
 
     return await (eventHandlers[event_name] ?? defaultHandler)(req, webhook_url);
-  }
-})
+  },
+});
 
 ROUTES.push({
   methods: ["GET"],
-  paths: [new URLPattern({pathname: "/version"})],
+  paths: [new URLPattern({ pathname: "/version" })],
   handler: () => Promise.resolve(textResponse("idk bro")),
-})
+});
 ROUTES.push({
   methods: ["GET"],
-  paths: [new URLPattern({pathname: "/source"})],
+  paths: [new URLPattern({ pathname: "/source" })],
   handler: () => Promise.resolve(redirect("https://github.com/mini-bomba/github-webhook-enhancer-deno")),
-})
+});
 ROUTES.push({
   methods: ["GET"],
-  paths: [new URLPattern({pathname: "/"})],
+  paths: [new URLPattern({ pathname: "/" })],
   handler: () => Promise.resolve(redirect("https://github.com/mini-bomba/github-webhook-enhancer-deno")),
-})
+});
 
 export async function requestHandler(req: Request): Promise<Response> {
   for (const route of ROUTES) {
@@ -59,7 +59,7 @@ export async function requestHandler(req: Request): Promise<Response> {
       for (const pattern of route.paths) {
         const match = pattern.exec(req.url);
         if (match) {
-          return await route.handler(match, req)
+          return await route.handler(match, req);
         }
       }
     }

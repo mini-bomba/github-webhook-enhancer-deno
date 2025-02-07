@@ -16,7 +16,7 @@ export default async function handlePREvent(request: Request, webhook_url: strin
 
   let action: string;
   let color: number;
-  switch(event.action) {
+  switch (event.action) {
     case "converted_to_draft":
       action = "converted to draft";
       color = 0x212830;
@@ -31,7 +31,7 @@ export default async function handlePREvent(request: Request, webhook_url: strin
       break;
     case "closed":
       if (event.pull_request.merged) {
-        action = "merged"
+        action = "merged";
         color = 0x8250df;
       } else {
         action = "closed";
@@ -59,11 +59,11 @@ export default async function handlePREvent(request: Request, webhook_url: strin
           url: event.sender.html_url,
           icon_url: event.sender.avatar_url,
         },
-        title: `[${event.repository.full_name}] Pull request ${action}: #${event.pull_request.number} ${event.pull_request.title}`,
+        title:
+          `[${event.repository.full_name}] Pull request ${action}: #${event.pull_request.number} ${event.pull_request.title}`,
         url: event.pull_request.html_url,
         color,
       }],
     }),
   });
 }
-

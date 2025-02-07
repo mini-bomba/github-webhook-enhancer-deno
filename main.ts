@@ -83,7 +83,7 @@ ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/source" })],
   handler: async () =>
-    redirect(`https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${await GIT_VERSION ?? "master"}`),
+    redirect(`https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${await GIT_VERSION ?? "master"}/`),
 });
 ROUTES.push({
   methods: ["GET"],

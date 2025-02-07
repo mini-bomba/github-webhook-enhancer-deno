@@ -5,4 +5,4 @@ COPY handlers/ /app/handlers
 COPY .git/refs /app/.git/refs
 COPY .git/HEAD /app/.git/
 RUN ["/bin/deno", "cache", "main.ts"]
-CMD ["run", "--allow-net=0.0.0.0:8000,discord.com:443", "--allow-read=./.git", "main.ts"]
+CMD ["run", "--allow-net=0.0.0.0:8000,discord.com:443", "--allow-read=./.git", "--allow-env=GWE_*", "main.ts"]

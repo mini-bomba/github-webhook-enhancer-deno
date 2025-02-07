@@ -21,6 +21,35 @@ POST /{channel ID}/{webhook token} - Execute webhook
 
 grab a discord webhook, replace `discord.com` with `gh-webhook.minibomba.pro`, give it to github, don
 
+## runnin the server
+
+to run outside of a container:
+`deno run --allow-net=0.0.0.0:8000,discord:443 --allow-read=./.git --allow-env='GWE_*' main.ts`
+
+to run inside a container:
+simply build the provided `Dockerfile` and run the image - all required params are passed in by default
+
+the server will listen on `0.0.0.0:8000` by default
+
+### customizing the listen address with env vars
+
+this script looks at 3 different env vars to determine where it should listen for connections:
+- `GWE_LISTEN_UNIX` - if set, it will listen on this path as a unix socket
+- `GWE_LISTEN_PORT` - can override the default `8000` port
+- `GWE_LISTEN_HOST` - can override the default `0.0.0.0` address
+
+these variables affect the listen address in the following way:
+- if `GWE_LISTEN_UNIX` is set, the server will expose the specified unix socket
+- if `GWE_LISTEN_PORT` or `GWE_LISTEN_HOST` is set, the server will expose the specified tcp port
+- if neither of these variables are set, the server will expose the default `0.0.0.0:8000` tcp port
+- setting both `GWE_LISTEN_UNIX` and any of the variables responsible for the tcp socket will result in the server listening both on a unix and tcp socket
+
+## deno permissions
+
+- network `discord:443`, read `./.git` and env `GWE_*` is always required
+- if the server is set to listen on a tcp socket, network `<host>:<port>` must be granted
+- if the server is set to listen on a unix socket, read and write for the socket path must be granted
+
 ## the whys
 
 ### why rewrite?

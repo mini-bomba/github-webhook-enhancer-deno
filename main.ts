@@ -97,7 +97,16 @@ export async function requestHandler(req: Request): Promise<Response> {
 if (import.meta.main) {
   const unixPath = Deno.env.get("GWE_LISTEN_UNIX");
   if (unixPath !== undefined) {
-    Deno.serve({ path: unixPath, handler: requestHandler });
+    const stat = await Deno.stat(unixPath);
+    if (stat.isSocket) await Deno.remove(unixPath);
+    Deno.serve({
+      path: unixPath,
+      handler: requestHandler,
+      async onListen({ path }) {
+        await Deno.chmod(path, 0o777);
+        console.log(`Listening on ${path}`);
+      },
+    });
   }
   const tcpHost = Deno.env.get("GWE_LISTEN_HOST");
   const tcpPort = Number(Deno.env.get("GWE_LISTEN_PORT"));

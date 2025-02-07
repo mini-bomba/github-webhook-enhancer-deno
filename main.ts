@@ -17,9 +17,20 @@ const NUMBER_REGEX = /^\d+$/;
 const TOKEN_REGEX = /^[\w_-]+$/;
 const HASH_REGEX = /^[\da-f]{40}$/;
 
+async function statOrNull(path: string): Promise<Deno.FileInfo | null> {
+  try {
+    return await Deno.stat(path);
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 async function getCurrentVersion(): Promise<string | null> {
-  const gitDir = await Deno.stat(".git");
-  if (!gitDir.isDirectory) return null;
+  const gitDir = await statOrNull(".git");
+  if (!gitDir?.isDirectory) return null;
 
   const head = (await Deno.readTextFile(".git/HEAD")).trim();
   if (HASH_REGEX.test(head)) return head;
@@ -97,8 +108,8 @@ export async function requestHandler(req: Request): Promise<Response> {
 if (import.meta.main) {
   const unixPath = Deno.env.get("GWE_LISTEN_UNIX");
   if (unixPath !== undefined) {
-    const stat = await Deno.stat(unixPath);
-    if (stat.isSocket) await Deno.remove(unixPath);
+    const stat = await statOrNull(unixPath);
+    if (stat?.isSocket) await Deno.remove(unixPath);
     Deno.serve({
       path: unixPath,
       handler: requestHandler,

@@ -71,7 +71,8 @@ ROUTES.push({
 ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/source" })],
-  handler: async () => redirect(`https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${await GIT_VERSION ?? "master"}`),
+  handler: async () =>
+    redirect(`https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${await GIT_VERSION ?? "master"}`),
 });
 ROUTES.push({
   methods: ["GET"],
@@ -94,13 +95,13 @@ export async function requestHandler(req: Request): Promise<Response> {
 }
 
 if (import.meta.main) {
-  const unixPath = Deno.env.get("GWE_LISTEN_UNIX")
+  const unixPath = Deno.env.get("GWE_LISTEN_UNIX");
   if (unixPath !== undefined) {
-    Deno.serve({path: unixPath, handler: requestHandler});
+    Deno.serve({ path: unixPath, handler: requestHandler });
   }
   const tcpHost = Deno.env.get("GWE_LISTEN_HOST");
   const tcpPort = Number(Deno.env.get("GWE_LISTEN_PORT"));
   if (unixPath === undefined || tcpHost !== undefined || !isNaN(tcpPort)) {
-    Deno.serve({hostname: tcpHost ?? "0.0.0.0", port: isNaN(tcpPort) ? 8000 : tcpPort, handler: requestHandler})
+    Deno.serve({ hostname: tcpHost ?? "0.0.0.0", port: isNaN(tcpPort) ? 8000 : tcpPort, handler: requestHandler });
   }
 }

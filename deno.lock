@@ -1,0 +1,17 @@
+{
+  "version": "4",
+  "specifiers": {
+    "npm:@octokit/webhooks-types@*": "7.6.1",
+    "npm:@octokit/webhooks-types@^7.6.1": "7.6.1"
+  },
+  "npm": {
+    "@octokit/webhooks-types@7.6.1": {
+      "integrity": "sha512-S8u2cJzklBC0FgTwWVLaM8tMrDuDMVE4xiTK4EYXM9GntyvrdbSoxqDQa+Fh57CCNApyIpyeqPhhFEmHPfrXgw=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:@octokit/webhooks-types@^7.6.1"
+    ]
+  }
+}

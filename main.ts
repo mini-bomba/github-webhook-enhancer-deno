@@ -15,6 +15,32 @@ interface Route {
 const ROUTES: Route[] = [];
 const NUMBER_REGEX = /^\d+$/;
 const TOKEN_REGEX = /^[\w_-]+$/;
+const HASH_REGEX = /^[\da-f]{40}$/;
+
+async function getCurrentVersion(): Promise<string | null> {
+  const gitDir = await Deno.stat(".git");
+  if (!gitDir.isDirectory) return null;
+
+  const head = (await Deno.readTextFile(".git/HEAD")).trim();
+  if (HASH_REGEX.test(head)) return head;
+  if (!head.startsWith("ref: ")) {
+    console.warn("something's wrong with the .git dir, HEAD isn't a hash, and it isn't a ref either");
+    return null;
+  }
+
+  const refName = head.substring(5);
+  const ref = (await Deno.readTextFile(`.git/${refName}`)).trim();
+  if (!HASH_REGEX.test(ref)) {
+    console.warn(`something's wrong with the .git dir, ${refName} isn't a hash`);
+    return null;
+  }
+  return ref;
+}
+
+const GIT_VERSION = getCurrentVersion().catch((e) => {
+  console.warn("failed to get the git version!", e);
+  return null;
+});
 
 ROUTES.push({
   methods: ["POST"],
@@ -40,12 +66,12 @@ ROUTES.push({
 ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/version" })],
-  handler: () => Promise.resolve(textResponse("idk bro")),
+  handler: async () => textResponse(await GIT_VERSION ?? "idk bro"),
 });
 ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/source" })],
-  handler: () => Promise.resolve(redirect("https://github.com/mini-bomba/github-webhook-enhancer-deno")),
+  handler: async () => redirect(`https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${await GIT_VERSION ?? "master"}`),
 });
 ROUTES.push({
   methods: ["GET"],

@@ -6,7 +6,7 @@
 import { errorResponse, fetchResponse } from "../responses.ts";
 import { IssuesEvent } from "npm:@octokit/webhooks-types";
 
-export default async function handleIssueEvent(request: Request, webhook_url: string): Promise<Response> {
+export default async function handleIssueEvent(request: Request, channel_id: string, webhook_url: string): Promise<Response> {
   let event: IssuesEvent;
   try {
     event = await request.json();
@@ -35,7 +35,7 @@ export default async function handleIssueEvent(request: Request, webhook_url: st
         method: "POST",
         headers: request.headers,
         body: JSON.stringify(event),
-      });
+      }, channel_id);
   }
 
   return await fetchResponse(webhook_url, {
@@ -55,5 +55,5 @@ export default async function handleIssueEvent(request: Request, webhook_url: st
         color,
       }],
     }),
-  });
+  }, channel_id);
 }

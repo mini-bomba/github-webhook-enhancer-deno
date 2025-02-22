@@ -6,7 +6,7 @@
 import { errorResponse, fetchResponse } from "../responses.ts";
 import { PullRequestEvent } from "npm:@octokit/webhooks-types";
 
-export default async function handlePREvent(request: Request, webhook_url: string): Promise<Response> {
+export default async function handlePREvent(request: Request, channel_id: string, webhook_url: string): Promise<Response> {
   let event: PullRequestEvent;
   try {
     event = await request.json();
@@ -44,7 +44,7 @@ export default async function handlePREvent(request: Request, webhook_url: strin
         method: "POST",
         headers: request.headers,
         body: JSON.stringify(event),
-      });
+      }, channel_id);
   }
 
   return await fetchResponse(webhook_url, {
@@ -65,5 +65,5 @@ export default async function handlePREvent(request: Request, webhook_url: strin
         color,
       }],
     }),
-  });
+  }, channel_id);
 }

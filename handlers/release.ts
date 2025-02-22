@@ -6,7 +6,7 @@
 import { errorResponse, fetchResponse } from "../responses.ts";
 import { ReleaseEvent } from "npm:@octokit/webhooks-types";
 
-export default async function handleReleaseEvent(request: Request, webhook_url: string): Promise<Response> {
+export default async function handleReleaseEvent(request: Request, channel_id: string, webhook_url: string): Promise<Response> {
   let event: ReleaseEvent;
   try {
     event = await request.json();
@@ -19,7 +19,7 @@ export default async function handleReleaseEvent(request: Request, webhook_url: 
       method: "POST",
       headers: request.headers,
       body: JSON.stringify(event),
-    });
+    }, channel_id);
   }
 
   // release published -> create new embed with more data
@@ -41,5 +41,5 @@ export default async function handleReleaseEvent(request: Request, webhook_url: 
         description: event.release.body?.substring(0, 4096) ?? "",
       }],
     }),
-  });
+  }, channel_id);
 }

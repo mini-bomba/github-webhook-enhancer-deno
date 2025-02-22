@@ -70,7 +70,7 @@ ROUTES.push({
     const webhook_url = `https://discord.com/api/webhooks/${channel_id}/${token}`;
     const event_name = req.headers.get("X-GitHub-Event") ?? "";
 
-    return await (eventHandlers[event_name] ?? defaultHandler)(req, webhook_url);
+    return await (eventHandlers[event_name] ?? defaultHandler)(req, channel_id, webhook_url);
   },
 });
 

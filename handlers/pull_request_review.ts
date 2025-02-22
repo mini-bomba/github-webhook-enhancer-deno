@@ -6,7 +6,7 @@
 import { emptyResponse, errorResponse, fetchResponse, textResponse } from "../responses.ts";
 import { PullRequestReviewEvent } from "npm:@octokit/webhooks-types";
 
-export default async function handlePRReviewEvent(request: Request, webhook_url: string): Promise<Response> {
+export default async function handlePRReviewEvent(request: Request, channel_id: string, webhook_url: string): Promise<Response> {
   let event: PullRequestReviewEvent;
   try {
     event = await request.json();
@@ -16,14 +16,14 @@ export default async function handlePRReviewEvent(request: Request, webhook_url:
 
   switch (event.action) {
     case "submitted": {
-      return await handleReviewSubmitted(event, request, webhook_url);
+      return await handleReviewSubmitted(event, request, webhook_url, channel_id);
     }
     case "edited": {
       // don't care
       return emptyResponse(204);
     }
     case "dismissed": {
-      return await handleReviewDismissed(event, webhook_url);
+      return await handleReviewDismissed(event, webhook_url, channel_id);
     }
     default: {
       return textResponse("how did we get here?", 500);
@@ -35,6 +35,7 @@ async function handleReviewSubmitted(
   event: PullRequestReviewEvent,
   request: Request,
   webhook_url: string,
+  channel_id: string,
 ): Promise<Response> {
   // these are sent when a comment is added to the review
   // discord does not know this
@@ -61,17 +62,17 @@ async function handleReviewSubmitted(
           color: 0x212830,
         }],
       }),
-    });
+    }, channel_id);
   }
 
   return await fetchResponse(`${webhook_url}/github`, {
     method: "POST",
     headers: request.headers,
     body: JSON.stringify(event),
-  });
+  }, channel_id);
 }
 
-async function handleReviewDismissed(event: PullRequestReviewEvent, webhook_url: string): Promise<Response> {
+async function handleReviewDismissed(event: PullRequestReviewEvent, webhook_url: string, channel_id: string): Promise<Response> {
   return await fetchResponse(webhook_url, {
     method: "POST",
     headers: { "Content-Type": "application/json;charset=UTF-8" },
@@ -91,5 +92,5 @@ async function handleReviewDismissed(event: PullRequestReviewEvent, webhook_url:
         color: 0x212830,
       }],
     }),
-  });
+  }, channel_id);
 }

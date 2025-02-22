@@ -4,6 +4,8 @@
 // Copyright (C) 2022-2025 mini_bomba
 //
 
+import { DISCORD_RATE_LIMITER } from "./ratelimiting.ts";
+
 export const baseResponse = (body?: BodyInit, status: number = 200, headers?: object) =>
   new Response(body, {
     status: status,
@@ -25,8 +27,8 @@ export const redirect = (url: string) =>
     Location: url,
   });
 
-export async function fetchResponse(request: Request | string, init?: RequestInit | Request) {
-  let response: Response = await fetch(request, init);
+export async function fetchResponse(request: Request | string, init?: RequestInit | Request | undefined, rateLimitScope?: string) {
+  let response: Response = rateLimitScope === undefined ? await fetch(request, init) : await DISCORD_RATE_LIMITER.for(rateLimitScope).runTask(() => fetch(request, init));
   response = new Response(response.body, response);
   response.headers.delete("Strict-Transport-Security");
   response.headers.set("Cache-Control", "no-store");

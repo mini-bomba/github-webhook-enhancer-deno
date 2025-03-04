@@ -43,6 +43,7 @@ async function handleReviewSubmitted(
     if (event.review.body === null) {
       return emptyResponse(204);
     }
+    const max_length = event.review.user.id === 65095814 ? 256 : 4096;
     return await fetchResponse(webhook_url, {
       method: "POST",
       headers: { "Content-Type": "application/json;charset=UTF-8" },
@@ -57,7 +58,7 @@ async function handleReviewSubmitted(
           },
           title:
             `[${event.repository.full_name}] Pull request review submitted: #${event.pull_request.number} ${event.pull_request.title}`,
-          description: event.review.body.length < 4096 ? event.review.body : `${event.review.body.substring(0, 4090)}...`,
+          description: event.review.body.length < max_length ? event.review.body : `${event.review.body.substring(0, max_length-3)}...`,
           url: event.pull_request.html_url,
           color: 0x212830,
         }],

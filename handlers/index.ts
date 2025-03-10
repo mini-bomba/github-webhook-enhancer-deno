@@ -16,4 +16,4 @@ export const eventHandlers: Record<string, (req: Request, channel_id: string, we
   release: handleReleaseEvent,
 };
 
-export const defaultHandler = (req: Request, _channel_id: string, webhook_url: string) => fetchResponse(`${webhook_url}/github`, req);
+export const defaultHandler = (req: Request, channel_id: string, webhook_url: string) => fetchResponse(`${webhook_url}/github`, req, channel_id);

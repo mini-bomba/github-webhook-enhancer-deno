@@ -82,7 +82,7 @@ export class ScopedRateLimiter<T> {
   }
 
   private allocateNew(scope: T): RateLimiter {
-    const newLimiter = new RateLimiter(this.capacity, this.everySeconds);
+    const newLimiter = new RateLimiter(this.capacity, this.everySeconds * 1000);
     this.#limiters.set(scope, newLimiter);
     return newLimiter;
   }

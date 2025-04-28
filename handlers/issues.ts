@@ -23,7 +23,7 @@ export default async function handleIssueEvent(request: Request, channel_id: str
       break;
     case "closed":
       action = `closed as ${event.issue.state_reason!.replaceAll("_", " ")}`;
-      if (event.issue.state_reason === "not_planned") {
+      if (event.issue.state_reason !== "completed") {
         color = 0x212830;
       } else {
         color = 0x8250df;

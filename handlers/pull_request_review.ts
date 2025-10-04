@@ -83,6 +83,20 @@ async function handleReviewSubmitted(
     return emptyResponse(204);
   }
 
+  let color;
+  switch (event.review.state) {
+    case "commented":
+    case "dismissed":
+      color = 0x212830;
+      break;
+    case "changes_requested":
+      color = 0xfc2121;
+      break
+    case "approved":
+      color = 0x009800;
+      break;
+  }
+
   const comments = await collectComments(event.review.id);
   const max_length = event.review.user.login.endsWith("[bot]") ? 256 : 4096;
   return await fetchResponse(
@@ -109,7 +123,7 @@ async function handleReviewSubmitted(
                   ? event.review.body
                   : `${event.review.body.substring(0, max_length - 3)}...`,
             url: event.pull_request.html_url,
-            color: 0x212830,
+            color,
             fields:
               comments > 0
                 ? [

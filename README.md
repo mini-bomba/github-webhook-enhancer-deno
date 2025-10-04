@@ -83,6 +83,8 @@ this project can currently intercept and improve the following events:
   - blocks "Pull request review submitted" events when someone comments on a review
     - review comment content will still be sent to discord if pull_request_review_comment event is enabled. this simply
       removes the noise
+  - merges "New review comment" into "Pull request review submitted" events for initial comments on a review thread
+    - you'll get a single message with the main review content and `+ 20 comments` instead of 21 messages
 
 ## some images i guess
 
@@ -93,6 +95,9 @@ this project can currently intercept and improve the following events:
 ### PR and release events
 
 ![comparison of PR and release events](docs/comparison2.png)
+
+### PR review merging
+![merged PR review event](docs/review_merging.png)
 
 ## license
 

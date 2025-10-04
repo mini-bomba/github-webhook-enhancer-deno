@@ -4,7 +4,7 @@
 // Copyright (C) 2022-2025 mini_bomba
 //
 import { errorResponse, fetchResponse } from "../responses.ts";
-import { IssuesEvent } from "npm:@octokit/webhooks-types";
+import { IssuesEvent } from "@octokit/webhooks-types";
 
 export default async function handleIssueEvent(request: Request, channel_id: string, webhook_url: string): Promise<Response> {
   let event: IssuesEvent;

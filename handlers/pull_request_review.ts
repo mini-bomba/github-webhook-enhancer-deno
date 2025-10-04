@@ -4,7 +4,7 @@
 // Copyright (C) 2022-2025 mini_bomba
 //
 import { emptyResponse, errorResponse, fetchResponse, textResponse } from "../responses.ts";
-import { PullRequestReviewEvent } from "npm:@octokit/webhooks-types";
+import { PullRequestReviewEvent } from "@octokit/webhooks-types";
 
 export default async function handlePRReviewEvent(request: Request, channel_id: string, webhook_url: string): Promise<Response> {
   let event: PullRequestReviewEvent;

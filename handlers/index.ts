@@ -9,11 +9,28 @@ import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
 import handleReleaseEvent from "./release.ts";
 
-export const eventHandlers: Record<string, (req: Request, channel_id: string, webhook_url: string) => Promise<Response>> = {
+export const eventHandlers: Record<
+  string,
+  (req: Request, channel_id: string, webhook_url: string) => Promise<Response>
+> = {
   issues: handleIssueEvent,
   pull_request: handlePREvent,
   pull_request_review: handlePRReviewEvent,
   release: handleReleaseEvent,
 };
 
-export const defaultHandler = (req: Request, channel_id: string, webhook_url: string) => fetchResponse(`${webhook_url}/github`, req, channel_id);
+export async function defaultHandler(
+  req: Request,
+  channel_id: string,
+  webhook_url: string,
+) {
+  return await fetchResponse(
+    `${webhook_url}/github`,
+    {
+      method: req.method,
+      headers: req.headers,
+      body: await req.blob(),
+    },
+    channel_id,
+  );
+}

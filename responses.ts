@@ -27,8 +27,9 @@ export const redirect = (url: string) =>
     Location: url,
   });
 
-export async function fetchResponse(request: Request | string, init?: RequestInit | Request | undefined, rateLimitScope?: string) {
-  let response: Response = rateLimitScope === undefined ? await fetch(request, init) : await DISCORD_RATE_LIMITER.for(rateLimitScope).runTask(() => fetch(request, init));
+export async function fetchResponse(request: Request | string, init?: RequestInit | undefined, rateLimitScope?: string) {
+  const clonedRequest = new Request(request, init);
+  let response: Response = rateLimitScope === undefined ? await fetch(clonedRequest) : await DISCORD_RATE_LIMITER.for(rateLimitScope).runTask(() => fetch(clonedRequest));
   response = new Response(response.body, response);
   response.headers.delete("Strict-Transport-Security");
   response.headers.set("Cache-Control", "no-store");

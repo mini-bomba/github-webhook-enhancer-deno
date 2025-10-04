@@ -7,6 +7,7 @@ import { fetchResponse } from "../responses.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
+import handleReviewCommentEvent from "./pull_request_review_comment.ts";
 import handleReleaseEvent from "./release.ts";
 
 export const eventHandlers: Record<
@@ -16,6 +17,7 @@ export const eventHandlers: Record<
   issues: handleIssueEvent,
   pull_request: handlePREvent,
   pull_request_review: handlePRReviewEvent,
+  pull_request_review_comment: handleReviewCommentEvent,
   release: handleReleaseEvent,
 };
 

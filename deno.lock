@@ -3,11 +3,15 @@
   "specifiers": {
     "npm:@octokit/webhooks-types@*": "7.6.1",
     "npm:@octokit/webhooks-types@^7.6.1": "7.6.1",
+    "npm:@solvro/utils@^1.3.0": "1.3.0",
     "npm:@types/node@^24.6.2": "24.6.2"
   },
   "npm": {
     "@octokit/webhooks-types@7.6.1": {
       "integrity": "sha512-S8u2cJzklBC0FgTwWVLaM8tMrDuDMVE4xiTK4EYXM9GntyvrdbSoxqDQa+Fh57CCNApyIpyeqPhhFEmHPfrXgw=="
+    },
+    "@solvro/utils@1.3.0": {
+      "integrity": "sha512-wQ/7C3t95gwEdWEAqcdxpae+IYDX66o0vKGEkXbk/P4LzL+kQbaMUEZDKXFpJuWU9AMuHsxxg8Vcdqm4/Ux/ww=="
     },
     "@types/node@24.6.2": {
       "integrity": "sha512-d2L25Y4j+W3ZlNAeMKcy7yDsK425ibcAOO2t7aPTz6gNMH0z2GThtwENCDc0d/Pw9wgyRqE5Px1wkV7naz8ang==",
@@ -22,6 +26,7 @@
   "workspace": {
     "dependencies": [
       "npm:@octokit/webhooks-types@^7.6.1",
+      "npm:@solvro/utils@^1.3.0",
       "npm:@types/node@^24.6.2"
     ]
   }

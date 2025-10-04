@@ -3,7 +3,8 @@
     "dev": "deno run --watch main.ts"
   },
   "imports": {
-    "@octokit/webhooks-types": "npm:@octokit/webhooks-types@^7.6.1"
+    "@octokit/webhooks-types": "npm:@octokit/webhooks-types@^7.6.1",
+    "@types/node": "npm:@types/node@^24.6.2"
   },
   "fmt": {
     "lineWidth": 125,

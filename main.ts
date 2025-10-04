@@ -5,6 +5,7 @@
 //
 import { defaultHandler, eventHandlers } from "./handlers/index.ts";
 import { emptyResponse, redirect, textResponse } from "./responses.ts";
+import { setTimeout } from "node:timers/promises";
 
 interface Route {
   methods: string[];
@@ -35,14 +36,18 @@ async function getCurrentVersion(): Promise<string | null> {
   const head = (await Deno.readTextFile(".git/HEAD")).trim();
   if (HASH_REGEX.test(head)) return head;
   if (!head.startsWith("ref: ")) {
-    console.warn("something's wrong with the .git dir, HEAD isn't a hash, and it isn't a ref either");
+    console.warn(
+      "something's wrong with the .git dir, HEAD isn't a hash, and it isn't a ref either",
+    );
     return null;
   }
 
   const refName = head.substring(5);
   const ref = (await Deno.readTextFile(`.git/${refName}`)).trim();
   if (!HASH_REGEX.test(ref)) {
-    console.warn(`something's wrong with the .git dir, ${refName} isn't a hash`);
+    console.warn(
+      `something's wrong with the .git dir, ${refName} isn't a hash`,
+    );
     return null;
   }
   return ref;
@@ -55,7 +60,11 @@ const GIT_VERSION = getCurrentVersion().catch((e) => {
 
 ROUTES.push({
   methods: ["POST"],
-  paths: [new URLPattern({ pathname: "{/api}?{/webhooks}?/:channel_id/:token{/github}?" })],
+  paths: [
+    new URLPattern({
+      pathname: "{/api}?{/webhooks}?/:channel_id/:token{/github}?",
+    }),
+  ],
   handler: async (match: URLPatternResult, req: Request): Promise<Response> => {
     const { channel_id, token } = match.pathname.groups;
     if (
@@ -70,25 +79,34 @@ ROUTES.push({
     const webhook_url = `https://discord.com/api/webhooks/${channel_id}/${token}`;
     const event_name = req.headers.get("X-GitHub-Event") ?? "";
 
-    return await (eventHandlers[event_name] ?? defaultHandler)(req, channel_id, webhook_url);
+    return await (eventHandlers[event_name] ?? defaultHandler)(
+      req,
+      channel_id,
+      webhook_url,
+    );
   },
 });
 
 ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/version" })],
-  handler: async () => textResponse(await GIT_VERSION ?? "idk bro"),
+  handler: async () => textResponse((await GIT_VERSION) ?? "idk bro"),
 });
 ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/source" })],
   handler: async () =>
-    redirect(`https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${await GIT_VERSION ?? "master"}/`),
+    redirect(
+      `https://github.com/mini-bomba/github-webhook-enhancer-deno/tree/${(await GIT_VERSION) ?? "master"}/`,
+    ),
 });
 ROUTES.push({
   methods: ["GET"],
   paths: [new URLPattern({ pathname: "/" })],
-  handler: () => Promise.resolve(redirect("https://github.com/mini-bomba/github-webhook-enhancer-deno")),
+  handler: () =>
+    Promise.resolve(
+      redirect("https://github.com/mini-bomba/github-webhook-enhancer-deno"),
+    ),
 });
 
 export async function requestHandler(req: Request): Promise<Response> {
@@ -103,6 +121,16 @@ export async function requestHandler(req: Request): Promise<Response> {
     }
   }
   return emptyResponse(404);
+}
+
+function timeoutAutoResp(): Promise<Response> {
+  return setTimeout(1000, emptyResponse(204));
+}
+
+export async function requestHandlerWithTimeout(
+  req: Request,
+): Promise<Response> {
+  return await Promise.race([requestHandler(req), timeoutAutoResp()]);
 }
 
 if (import.meta.main) {
@@ -121,7 +149,13 @@ if (import.meta.main) {
   }
   const tcpHost = Deno.env.get("GWE_LISTEN_HOST");
   const tcpPort = Number(Deno.env.get("GWE_LISTEN_PORT"));
+  const disableTimeoutResp =
+    Deno.env.get("GWE_NO_TIMEOUT_RESPONSE") !== undefined;
   if (unixPath === undefined || tcpHost !== undefined || !isNaN(tcpPort)) {
-    Deno.serve({ hostname: tcpHost ?? "0.0.0.0", port: isNaN(tcpPort) ? 8000 : tcpPort, handler: requestHandler });
+    Deno.serve({
+      hostname: tcpHost ?? "0.0.0.0",
+      port: isNaN(tcpPort) ? 8000 : tcpPort,
+      handler: disableTimeoutResp ? requestHandler : requestHandlerWithTimeout,
+    });
   }
 }

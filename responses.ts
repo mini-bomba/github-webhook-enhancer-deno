@@ -4,6 +4,7 @@
 // Copyright (C) 2022-2025 mini_bomba
 //
 
+import assert from "node:assert";
 import { DISCORD_RATE_LIMITER } from "./ratelimiting.ts";
 
 export const baseResponse = (body?: BodyInit, status: number = 200, headers?: object): Response =>
@@ -27,7 +28,7 @@ export const redirect = (url: string) =>
     Location: url,
   });
 
-export async function fetchResponse(request: Request | string, init?: RequestInit | undefined, rateLimitScope?: string): Promise<Response> {
+export async function fetchResponse(request: Request | string | URL, init?: RequestInit | undefined, rateLimitScope?: string): Promise<Response> {
   const clonedRequest = new Request(request, init);
   let response: Response = rateLimitScope === undefined ? await fetch(clonedRequest) : await DISCORD_RATE_LIMITER.for(rateLimitScope).runTask(() => fetch(clonedRequest));
   response = new Response(response.body, response);
@@ -48,8 +49,29 @@ export async function discordWebhookResponse(ctx: RequestCtx<unknown>, embeds: o
   }, ctx.channel_id);
 }
 
+export async function sendWebhookMessage(ctx: RequestCtx<unknown>, embeds: object[]): Promise<string> {
+  const resp = await discordWebhookResponse(ctx, embeds);
+  const json = await resp.json();
+  assert(typeof json === "object" && json !== null && "id" in json && typeof json.id === "string");
+  return json.id;
+}
+
+export async function editWebhookMessage(ctx: RequestCtx<unknown>, message_id: string, embeds: object[]): Promise<Response> {
+  const url = new URL(ctx.webhook_url);
+  url.pathname += `/messages/${message_id}`;
+  return await fetchResponse(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json;charset=UTF-8" },
+    body: JSON.stringify({
+      embeds,
+    }),
+  })
+}
+
 export async function forwardToDiscord(ctx: RequestCtx<unknown>, payload: BodyInit): Promise<Response> {
-  return await fetchResponse(`${ctx.webhook_url}/github`, {
+  const url = new URL(ctx.webhook_url);
+  url.pathname += "/github";
+  return await fetchResponse(url, {
     method: "POST",
     headers: ctx.request.headers,
     body: payload,
@@ -68,7 +90,7 @@ export function errorResponse(error: unknown, status: number = 400): Response {
 
 export interface RequestCtx<Event = undefined> {
   request: Request;
-  webhook_url: string;
+  webhook_url: URL;
   channel_id: string;
   event_body: Event;
 }

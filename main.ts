@@ -76,7 +76,8 @@ ROUTES.push({
       return textResponse("Invalid discord webhook ID/token", 401);
     }
 
-    const webhook_url = `https://discord.com/api/webhooks/${channel_id}/${token}`;
+    const webhook_url = new URL(`https://discord.com/api/webhooks/${channel_id}/${token}`);
+    webhook_url.searchParams.append("wait", "true");
     const event_name = req.headers.get("X-GitHub-Event") ?? "";
 
     const request_ctx = {
@@ -86,9 +87,7 @@ ROUTES.push({
       event_body: undefined,
     };
 
-    return await (eventHandlers[event_name] ?? defaultHandler)(
-      request_ctx
-    );
+    return await (eventHandlers[event_name] ?? defaultHandler)(request_ctx);
   },
 });
 

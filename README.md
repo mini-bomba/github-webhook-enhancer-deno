@@ -73,6 +73,7 @@ this project can currently intercept and improve the following events:
 
 - release creation
   - adds the release description and timestamp into the message
+  - updates the message if the release is edited within 15 minutes of publishing
 - issue closing/reopening
   - includes the reason for closing the issue (completed/not planned)
   - adds colors associated with the different close reasons and reopening the issue

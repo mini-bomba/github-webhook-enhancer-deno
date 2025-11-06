@@ -3,7 +3,8 @@
 //
 // Copyright (C) 2025 mini_bomba
 //
-import { fetchResponse } from "../responses.ts";
+
+import { forwardToDiscord, RequestCtx } from "../responses.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
@@ -12,7 +13,7 @@ import handleReleaseEvent from "./release.ts";
 
 export const eventHandlers: Record<
   string,
-  (req: Request, channel_id: string, webhook_url: string) => Promise<Response>
+  (ctx: RequestCtx) => Promise<Response>
 > = {
   issues: handleIssueEvent,
   pull_request: handlePREvent,
@@ -22,17 +23,7 @@ export const eventHandlers: Record<
 };
 
 export async function defaultHandler(
-  req: Request,
-  channel_id: string,
-  webhook_url: string,
+  ctx: RequestCtx,
 ) {
-  return await fetchResponse(
-    `${webhook_url}/github`,
-    {
-      method: req.method,
-      headers: req.headers,
-      body: await req.blob(),
-    },
-    channel_id,
-  );
+  return await forwardToDiscord(ctx, await ctx.request.blob());
 }

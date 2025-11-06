@@ -5,7 +5,12 @@
 //
 
 import { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
-import { emptyResponse, errorResponse, fetchResponse } from "../responses.ts";
+import {
+  emptyResponse,
+  errorResponse,
+  forwardToDiscord,
+  RequestCtx,
+} from "../responses.ts";
 import { ExtendedMap } from "@solvro/utils/map";
 import { setTimeout } from "node:timers/promises";
 
@@ -17,13 +22,11 @@ export interface PendingReview {
 export const reviews = new ExtendedMap<number, PendingReview>();
 
 export default async function handleReviewCommentEvent(
-  request: Request,
-  channel_id: string,
-  webhook_url: string,
+  ctx: RequestCtx,
 ): Promise<Response> {
   let event: PullRequestReviewCommentEvent;
   try {
-    event = await request.json();
+    event = await ctx.request.json();
   } catch (e) {
     return errorResponse(e);
   }
@@ -61,13 +64,5 @@ export default async function handleReviewCommentEvent(
     return emptyResponse(204);
   }
 
-  return await fetchResponse(
-    `${webhook_url}/github`,
-    {
-      method: "POST",
-      headers: request.headers,
-      body: JSON.stringify(event),
-    },
-    channel_id,
-  );
+  return await forwardToDiscord(ctx, JSON.stringify(event));
 }

@@ -10,18 +10,20 @@ import {
   forwardToDiscord,
   RequestCtx,
 } from "../responses.ts";
-import { PushEvent } from "@octokit/webhooks-types";
+import { CreateEvent } from "@octokit/webhooks-types";
 
-export default async function handlePush(ctx: RequestCtx): Promise<Response> {
+export default async function handleNewBranch(
+  ctx: RequestCtx,
+): Promise<Response> {
   const { request } = ctx;
-  let event: PushEvent;
+  let event: CreateEvent;
   try {
     event = await request.json();
   } catch (e) {
     return errorResponse(e);
   }
 
-  if (event.ref.startsWith("refs/heads/gh-readonly-queue/")) {
+  if (event.ref.startsWith("gh-readonly-queue/")) {
     // silence the merge queue
     return emptyResponse(204);
   }

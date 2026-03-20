@@ -5,12 +5,12 @@
 //
 
 import { forwardToDiscord, RequestCtx } from "../responses.ts";
-import handlePush from "./create.ts";
 import handleNewBranch from "./create.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
 import handleReviewCommentEvent from "./pull_request_review_comment.ts";
+import handlePush from "./push.ts";
 import handleReleaseEvent from "./release.ts";
 
 export const eventHandlers: Record<

@@ -86,6 +86,10 @@ this project can currently intercept and improve the following events:
       removes the noise
   - merges "New review comment" into "Pull request review submitted" events for initial comments on a review thread
     - you'll get a single message with the main review content and `+ 20 comments` instead of 21 messages
+- merge queues
+  - sliences merge queue bot's pushes and branch creations
+  - sends messages when automatic merge is enabled or disabled for a PR
+  - sends messages when a PR is added or removed from the merge queue
 
 ## some images i guess
 

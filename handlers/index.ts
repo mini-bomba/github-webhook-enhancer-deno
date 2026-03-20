@@ -5,6 +5,8 @@
 //
 
 import { forwardToDiscord, RequestCtx } from "../responses.ts";
+import handlePush from "./create.ts";
+import handleNewBranch from "./create.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
@@ -20,10 +22,10 @@ export const eventHandlers: Record<
   pull_request_review: handlePRReviewEvent,
   pull_request_review_comment: handleReviewCommentEvent,
   release: handleReleaseEvent,
+  create: handleNewBranch,
+  push: handlePush,
 };
 
-export async function defaultHandler(
-  ctx: RequestCtx,
-) {
+export async function defaultHandler(ctx: RequestCtx) {
   return await forwardToDiscord(ctx, await ctx.request.blob());
 }

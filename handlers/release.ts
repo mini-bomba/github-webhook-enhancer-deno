@@ -60,6 +60,9 @@ async function releasePublished(ctx: RequestCtx<ReleasePublishedEvent>): Promise
 async function releaseEdited(ctx: RequestCtx<ReleaseEditedEvent>): Promise<Response> {
   const event = ctx.event_body
 
+  // no changes = probably just an asset update
+  if ((event.changes.body ?? event.changes.name) === undefined) return emptyResponse(204);
+
   const messagePromise = release_messages.get(event.release.id);
   if (messagePromise === undefined) return emptyResponse(204);
   const messageId = await messagePromise;

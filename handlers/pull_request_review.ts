@@ -1,7 +1,7 @@
 // This file is part of the github-webhook-enhancer-deno project, licensed under the MIT license:
 // https://github.com/mini-bomba/github-webhook-enhancer-deno
 //
-// Copyright (C) 2022-2025 mini_bomba
+// Copyright (C) 2022-2026 mini_bomba
 //
 
 import {
@@ -51,8 +51,8 @@ export default async function handlePRReviewEvent(
   }
 }
 
-async function collectComments(review_id: number): Promise<number> {
-  const review = reviews.getOrInsertWith(review_id, () => ({
+async function collectComments(message_id: string): Promise<number> {
+  const review = reviews.getOrInsertWith(message_id, () => ({
     comments: new Map(),
   }));
 
@@ -74,7 +74,7 @@ async function collectComments(review_id: number): Promise<number> {
       ])) || review.comments.size !== 0;
   } while (more);
 
-  reviews.delete(review_id);
+  reviews.delete(message_id);
   return comment_count;
 }
 
@@ -102,7 +102,7 @@ async function handleReviewSubmitted(
       break;
   }
 
-  const comments = await collectComments(event.review.id);
+  const comments = await collectComments(`${ctx.channel_id}+${ctx.thread_id}+${event.review.id}`);
   const max_length = event.review.user.login.endsWith("[bot]") ? 256 : 4096;
   return await discordWebhookResponse(ctx, [
     {

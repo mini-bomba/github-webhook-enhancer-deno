@@ -1,7 +1,7 @@
 // This file is part of the github-webhook-enhancer-deno project, licensed under the MIT license:
 // https://github.com/mini-bomba/github-webhook-enhancer-deno
 //
-// Copyright (C) 2022-2025 mini_bomba
+// Copyright (C) 2022-2026 mini_bomba
 //
 
 import assert from "node:assert";
@@ -92,5 +92,6 @@ export interface RequestCtx<Event = undefined> {
   request: Request;
   webhook_url: URL;
   channel_id: string;
+  thread_id: string | null;
   event_body: Event;
 }

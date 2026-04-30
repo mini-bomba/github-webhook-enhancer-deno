@@ -1,7 +1,7 @@
 // This file is part of the github-webhook-enhancer-deno project, licensed under the MIT license:
 // https://github.com/mini-bomba/github-webhook-enhancer-deno
 //
-// Copyright (C) 2025 mini_bomba
+// Copyright (C) 2025-2026 mini_bomba
 //
 import { defaultHandler, eventHandlers } from "./handlers/index.ts";
 import { emptyResponse, redirect, textResponse } from "./responses.ts";
@@ -66,6 +66,8 @@ ROUTES.push({
     }),
   ],
   handler: async (match: URLPatternResult, req: Request): Promise<Response> => {
+    const parsed = new URL(req.url);
+    const thread_id = parsed.searchParams.get("thread_id");
     const { channel_id, token } = match.pathname.groups;
     if (
       channel_id == undefined ||
@@ -78,12 +80,16 @@ ROUTES.push({
 
     const webhook_url = new URL(`https://discord.com/api/webhooks/${channel_id}/${token}`);
     webhook_url.searchParams.append("wait", "true");
+    if (thread_id !== null) {
+      webhook_url.searchParams.append("thread_id", thread_id);
+    }
     const event_name = req.headers.get("X-GitHub-Event") ?? "";
 
     const request_ctx = {
       request: req,
       webhook_url,
       channel_id,
+      thread_id,
       event_body: undefined,
     };
 

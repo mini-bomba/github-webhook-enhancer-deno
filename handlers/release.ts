@@ -1,13 +1,13 @@
 // This file is part of the github-webhook-enhancer-deno project, licensed under the MIT license:
 // https://github.com/mini-bomba/github-webhook-enhancer-deno
 //
-// Copyright (C) 2022-2025 mini_bomba
+// Copyright (C) 2022-2026 mini_bomba
 //
 
 import { editWebhookMessage, emptyResponse, errorResponse, forwardToDiscord, RequestCtx, sendWebhookMessage } from "../responses.ts";
 import { ReleaseEditedEvent, ReleaseEvent, ReleasePublishedEvent } from "@octokit/webhooks-types";
 
-const release_messages = new Map<number, Promise<string>>();
+const release_messages = new Map<string, Promise<string>>();
 
 export default async function handleReleaseEvent(ctx: RequestCtx): Promise<Response> {
   let event: ReleaseEvent;
@@ -48,9 +48,10 @@ async function releasePublished(ctx: RequestCtx<ReleasePublishedEvent>): Promise
       description: event.release.body?.substring(0, 4096) ?? "",
     },
   ]);
-  release_messages.set(releaseId, messagePromise);
+  const messageId = `${ctx.channel_id}+${ctx.thread_id}+${releaseId}`;
+  release_messages.set(messageId, messagePromise);
   setTimeout(() => {
-    release_messages.delete(releaseId);
+    release_messages.delete(messageId);
   }, 15*60*1000)
 
   await messagePromise;
@@ -63,7 +64,7 @@ async function releaseEdited(ctx: RequestCtx<ReleaseEditedEvent>): Promise<Respo
   // no changes = probably just an asset update
   if ((event.changes.body ?? event.changes.name) === undefined) return emptyResponse(204);
 
-  const messagePromise = release_messages.get(event.release.id);
+  const messagePromise = release_messages.get(`${ctx.channel_id}+${ctx.thread_id}+${event.release.id}`);
   if (messagePromise === undefined) return emptyResponse(204);
   const messageId = await messagePromise;
 

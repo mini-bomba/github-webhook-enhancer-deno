@@ -9,8 +9,8 @@ public instance available at https://gh-webhook.minibomba.pro/
 mostly the same
 
 ```
-POST /{channel ID}/{webhook token} - Execute webhook
-(also POST /api/webhooks/{channel ID}/{webhook token}/github for maxium compatibility with discord)
+POST /{webhook ID}/{webhook token}?thread_id={thread ID} - Execute webhook
+(also POST /api/webhooks/{webhook ID}/{webhook token}/github?thread_id={thread ID} for maxium compatibility with discord)
 
 / - Redirects to this repository
 /version - Sends currently deployed git hash

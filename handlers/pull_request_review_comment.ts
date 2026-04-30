@@ -1,7 +1,7 @@
 // This file is part of the github-webhook-enhancer-deno project, licensed under the MIT license:
 // https://github.com/mini-bomba/github-webhook-enhancer-deno
 //
-// Copyright (C) 2025 mini_bomba
+// Copyright (C) 2025-2026 mini_bomba
 //
 
 import { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
@@ -19,7 +19,7 @@ export interface PendingReview {
   comments: Map<number, (merged: true) => void>;
 }
 
-export const reviews = new ExtendedMap<number, PendingReview>();
+export const reviews = new ExtendedMap<string, PendingReview>();
 
 export default async function handleReviewCommentEvent(
   ctx: RequestCtx,
@@ -36,10 +36,11 @@ export default async function handleReviewCommentEvent(
     return emptyResponse(204);
   }
 
+  const messageId = `${ctx.channel_id}+${ctx.thread_id}+${event.comment.pull_request_review_id}`;
   const merged = await Promise.race([
     new Promise((resolve) => {
       const review = reviews.getOrInsertWith(
-        event.comment.pull_request_review_id,
+        messageId,
         () => ({
           comments: new Map(),
         }),
@@ -52,11 +53,11 @@ export default async function handleReviewCommentEvent(
   ]);
 
   // cleanup
-  const review = reviews.get(event.comment.pull_request_review_id);
+  const review = reviews.get(messageId);
   if (review !== undefined) {
     review.comments.delete(event.comment.id);
     if (review.wake === undefined && review.comments.size === 0) {
-      reviews.delete(event.comment.pull_request_review_id);
+      reviews.delete(messageId);
     }
   }
 

@@ -4,7 +4,7 @@
 // Copyright (C) 2025 mini_bomba
 //
 
-import { forwardToDiscord, RequestCtx } from "../responses.ts";
+import { emptyResponse, forwardToDiscord, RequestCtx } from "../responses.ts";
 import handleNewBranch from "./create.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
@@ -24,8 +24,18 @@ export const eventHandlers: Record<
   release: handleReleaseEvent,
   create: handleNewBranch,
   push: handlePush,
+
+  // ignored events
+  check_suite: ignoredHandler,
+  workflow_job: ignoredHandler,
+  workflow_run: ignoredHandler,
 };
 
 export async function defaultHandler(ctx: RequestCtx) {
   return await forwardToDiscord(ctx, await ctx.request.blob());
+}
+
+// deno-lint-ignore require-await
+async function ignoredHandler() {
+  return emptyResponse(204);
 }

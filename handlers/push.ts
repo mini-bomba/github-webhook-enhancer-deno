@@ -6,7 +6,6 @@
 
 import { ExtendedMap } from "@solvro/utils/map";
 import {
-  discordWebhookResponse,
   editWebhookMessage,
   emptyResponse,
   errorResponse,
@@ -73,6 +72,7 @@ export default async function handlePush(ctx: RequestCtx): Promise<Response> {
         url: event.compare,
         description:
           event.head_commit == null ? null : formatCommit(event.head_commit),
+        fields: renderChecks(checks_entry),
         color: event.created ? 0x7289da : 0xe89b00,
       }
     : {

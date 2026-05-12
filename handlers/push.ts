@@ -4,15 +4,38 @@
 // Copyright (C) 2026 mini_bomba
 //
 
+import { ExtendedMap } from "@solvro/utils/map";
 import {
   discordWebhookResponse,
+  editWebhookMessage,
   emptyResponse,
   errorResponse,
   RequestCtx,
+  sendWebhookMessage,
 } from "../responses.ts";
-import { Commit, PushEvent } from "@octokit/webhooks-types";
+import { CheckRun, Commit, PushEvent } from "../types.ts";
+import { debounce, DebouncedFunction } from "@std/async";
 
-const REF_STRIP_REGEX = /^refs\/(tags|heads)\//
+const REF_STRIP_REGEX = /^refs\/(tags|heads)\//;
+const CHECKS_ENTRY_EXPIRY = 30 * 60 * 1000;
+
+interface Check {
+  name: string;
+  url: string;
+  status: CheckRun["conclusion"];
+}
+
+interface PendingChecks {
+  embed?: object;
+  message_id?: string;
+  checks: Map<number, Check>;
+  updates_waiting: boolean;
+  updating: boolean;
+  refresh: DebouncedFunction<[]>;
+  update(ctx: RequestCtx): void;
+}
+
+const pending_checks = new ExtendedMap<string, PendingChecks>();
 
 export default async function handlePush(ctx: RequestCtx): Promise<Response> {
   const { request } = ctx;
@@ -35,9 +58,12 @@ export default async function handlePush(ctx: RequestCtx): Promise<Response> {
   const isTag = event.ref.startsWith("refs/tags/");
   const name = event.ref.replace(REF_STRIP_REGEX, "");
 
-  if (isTag) {
-    return await discordWebhookResponse(ctx, [
-      {
+  const checks_entry = checksForKey(
+    `${ctx.channel_id}+${ctx.thread_id}+${event.head_commit.id}+${name}`,
+  );
+
+  const embed = isTag
+    ? {
         author: {
           name: event.sender.login,
           url: event.sender.html_url,
@@ -45,30 +71,116 @@ export default async function handlePush(ctx: RequestCtx): Promise<Response> {
         },
         title: `[${event.repository.full_name}] ${event.created ? `New tag ${name} created` : `Existing tag ${name} updated`}`,
         url: event.compare,
-        description: event.head_commit == null ? null : formatCommit(event.head_commit),
+        description:
+          event.head_commit == null ? null : formatCommit(event.head_commit),
         color: event.created ? 0x7289da : 0xe89b00,
-      },
-    ]);
-  }
-
-  const embed = {
-    author: {
-      name: event.sender.login,
-      url: event.sender.html_url,
-      icon_url: event.sender.avatar_url,
-    },
-    title: `[${event.repository.full_name}] ${event.commits.length} commit${event.commits.length > 1 ? 's' : ''} ${event.forced ? 'force-' : ''}pushed to ${event.created ? 'new ' : ''}branch ${name}`,
-    url: event.compare,
-    description: `${event.commits.length > 5 ? `**+ ${event.commits.length - 5} commits**\n` : ''}${event.commits.slice(-5).map(formatCommit).join('\n')}`,
-    color: event.forced ? 0xe89b00 : 0x7289da,
-  };
-
-  // let discord handle this
-  return await discordWebhookResponse(ctx, [embed]);
+      }
+    : {
+        author: {
+          name: event.sender.login,
+          url: event.sender.html_url,
+          icon_url: event.sender.avatar_url,
+        },
+        title: `[${event.repository.full_name}] ${event.commits.length} commit${event.commits.length > 1 ? "s" : ""} ${event.forced ? "force-" : ""}pushed to ${event.created ? "new " : ""}branch ${name}`,
+        url: event.compare,
+        description: `${event.commits.length > 5 ? `**+ ${event.commits.length - 5} commits**\n` : ""}${event.commits.slice(-5).map(formatCommit).join("\n")}`,
+        fields: renderChecks(checks_entry),
+        color: event.forced ? 0xe89b00 : 0x7289da,
+      };
+  checks_entry.embed = embed;
+  checks_entry.message_id = await sendWebhookMessage(ctx, [embed]);
+  checks_entry.updating = false;
+  if (checks_entry.updates_waiting) checks_entry.update(ctx);
+  return emptyResponse(204);
 }
 
 function formatCommit(commit: Commit): string {
-  const subject = commit.message.split('\n')[0] ?? '';
-  const abbrevSubject = `${subject.substring(0, 73)}${subject.length > 73 ? '…' : ''}`;
-  return `[\`${commit.id.substring(0,8)}\`](${commit.url}) ${abbrevSubject} - ${commit.author.name}${commit.author.name !== commit.committer.name ? `/${commit.committer.name}` : ''}`;
+  const subject = commit.message.split("\n")[0] ?? "";
+  const abbrevSubject = `${subject.substring(0, 73)}${subject.length > 73 ? "…" : ""}`;
+  return `[\`${commit.id.substring(0, 8)}\`](${commit.url}) ${abbrevSubject} - ${commit.author.name}${commit.author.name !== commit.committer.name ? `/${commit.committer.name}` : ""}`;
+}
+
+function renderChecks(checks: PendingChecks): object[] {
+  if (checks.checks.size === 0) {
+    return [];
+  }
+  return [
+    {
+      name: "Checks",
+      value: checks.checks
+        .values()
+        .toArray()
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(
+          (check) =>
+            `[\`${checkIcon(check.status)} ${check.name}\`](${check.url})`,
+        )
+        .join(" "),
+    },
+  ];
+}
+
+function checkIcon(status: Check["status"]): string {
+  switch (status) {
+    case null:
+    case "waiting":
+    case "pending":
+      return "🟡";
+    case "action_required":
+      return "⚠️";
+    case "cancelled":
+      return "🚫";
+    case "success":
+      return "🟢";
+    case "neutral":
+    case "skipped":
+      return "⚪";
+    default:
+      return "🔴";
+  }
+}
+
+export function checksForKey(commit_key: string): PendingChecks {
+  const checks = pending_checks.getOrInsertWith(commit_key, () => {
+    const innerUpdate = debounce(
+      async (checks: PendingChecks, ctx: RequestCtx) => {
+        if (
+          checks.updating ||
+          checks.message_id == null ||
+          checks.embed == null
+        ) {
+          checks.updates_waiting = true;
+          return;
+        }
+        checks.updating = true;
+        checks.updates_waiting = false;
+        try {
+          await editWebhookMessage(ctx, checks.message_id, [
+            {
+              ...checks.embed,
+              fields: renderChecks(checks),
+            },
+          ]);
+        } finally {
+          checks.updating = false;
+          if (checks.updates_waiting) innerUpdate(checks, ctx);
+        }
+      },
+      5000,
+    );
+    return {
+      checks: new Map(),
+      updates_waiting: false,
+      updating: true,
+      refresh: debounce(
+        () => pending_checks.delete(commit_key),
+        CHECKS_ENTRY_EXPIRY,
+      ),
+      update(ctx: RequestCtx) {
+        innerUpdate(this, ctx);
+      },
+    };
+  });
+  checks.refresh();
+  return checks;
 }

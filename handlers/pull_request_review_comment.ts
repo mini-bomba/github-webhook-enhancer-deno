@@ -4,7 +4,6 @@
 // Copyright (C) 2025-2026 mini_bomba
 //
 
-import { PullRequestReviewCommentEvent } from "@octokit/webhooks-types";
 import {
   emptyResponse,
   errorResponse,
@@ -13,6 +12,7 @@ import {
 } from "../responses.ts";
 import { ExtendedMap } from "@solvro/utils/map";
 import { setTimeout } from "node:timers/promises";
+import { PullRequestReviewCommentEvent } from "../types.ts";
 
 export interface PendingReview {
   wake?: (new_comments: true) => void;

@@ -15,7 +15,7 @@ import {
   PullRequestReviewDismissedEvent,
   PullRequestReviewEvent,
   PullRequestReviewSubmittedEvent,
-} from "@octokit/webhooks-types";
+} from "../types.ts";
 import { reviews } from "./pull_request_review_comment.ts";
 import { setTimeout } from "node:timers/promises";
 

@@ -5,7 +5,7 @@
 //
 
 import { editWebhookMessage, emptyResponse, errorResponse, forwardToDiscord, RequestCtx, sendWebhookMessage } from "../responses.ts";
-import { ReleaseEditedEvent, ReleaseEvent, ReleasePublishedEvent } from "@octokit/webhooks-types";
+import { ReleaseEditedEvent, ReleaseEvent, ReleasePublishedEvent } from "../types.ts";
 
 const release_messages = new Map<string, Promise<string>>();
 

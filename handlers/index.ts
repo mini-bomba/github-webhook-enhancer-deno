@@ -5,6 +5,7 @@
 //
 
 import { emptyResponse, forwardToDiscord, RequestCtx } from "../responses.ts";
+import handleCheckRun from "./check_run.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
@@ -16,6 +17,7 @@ export const eventHandlers: Record<
   string,
   (ctx: RequestCtx) => Promise<Response>
 > = {
+  check_run: handleCheckRun,
   issues: handleIssueEvent,
   pull_request: handlePREvent,
   pull_request_review: handlePRReviewEvent,

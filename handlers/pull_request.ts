@@ -5,7 +5,7 @@
 //
 
 import { discordWebhookResponse, emptyResponse, errorResponse, forwardToDiscord, RequestCtx } from "../responses.ts";
-import { PullRequestEvent } from "@octokit/webhooks-types";
+import { PullRequestEvent } from "../types.ts";
 
 export default async function handlePREvent(ctx: RequestCtx): Promise<Response> {
   const {request} = ctx;

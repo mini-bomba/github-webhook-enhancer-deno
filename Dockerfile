@@ -5,10 +5,7 @@
 #
 FROM docker.io/denoland/deno:distroless
 WORKDIR /app
-COPY deno.json deno.lock main.ts responses.ts ratelimiting.ts /app/
-COPY handlers/ /app/handlers
-COPY .git/refs /app/.git/refs
-COPY .git/HEAD /app/.git/
+COPY --parents deno.json deno.lock *.ts handlers/ .git/refs .git/HEAD /app/
 RUN ["/bin/deno", "install"]
 RUN ["/bin/deno", "cache", "main.ts"]
 CMD ["run", "--allow-net=0.0.0.0:8000,discord.com:443", "--allow-read=./.git", "--allow-env=GWE_*", "--no-prompt", "main.ts"]

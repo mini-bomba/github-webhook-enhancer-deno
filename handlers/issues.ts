@@ -5,7 +5,7 @@
 //
 
 import { discordWebhookResponse, errorResponse, forwardToDiscord, RequestCtx } from "../responses.ts";
-import { IssuesEvent } from "@octokit/webhooks-types";
+import { IssuesEvent } from "../types.ts";
 
 export default async function handleIssueEvent(ctx: RequestCtx): Promise<Response> {
   const { request } = ctx;

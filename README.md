@@ -97,6 +97,8 @@ this project can currently intercept and improve the following events:
   - tag pushes - rendered just like branch pushes, except only the top-most commit is shown
   - tag updates are properly rendered
   - new branches don't generate the "new branch" message - instead the push message mentions that a new branch was pushed
+- check runs
+  - instead of spamming your chat, check results get attached to the push message of the commit they belong to
 
 ## some images i guess
 
@@ -109,7 +111,12 @@ this project can currently intercept and improve the following events:
 ![comparison of PR and release events](docs/comparison2.png)
 
 ### PR review merging
+
 ![merged PR review event](docs/review_merging.png)
+
+### push and check run events
+
+![comparison of push and check run events](docs/push_and_checks.png)
 
 ## license
 

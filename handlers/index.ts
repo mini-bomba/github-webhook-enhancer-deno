@@ -5,7 +5,6 @@
 //
 
 import { emptyResponse, forwardToDiscord, RequestCtx } from "../responses.ts";
-import handleNewBranch from "./create.ts";
 import handleIssueEvent from "./issues.ts";
 import handlePREvent from "./pull_request.ts";
 import handlePRReviewEvent from "./pull_request_review.ts";
@@ -22,10 +21,10 @@ export const eventHandlers: Record<
   pull_request_review: handlePRReviewEvent,
   pull_request_review_comment: handleReviewCommentEvent,
   release: handleReleaseEvent,
-  create: handleNewBranch,
   push: handlePush,
 
   // ignored events
+  create: ignoredHandler,
   check_suite: ignoredHandler,
   workflow_job: ignoredHandler,
   workflow_run: ignoredHandler,

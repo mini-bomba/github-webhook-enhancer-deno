@@ -90,6 +90,13 @@ this project can currently intercept and improve the following events:
   - sliences merge queue bot's pushes and branch creations
   - sends messages when automatic merge is enabled or disabled for a PR
   - sends messages when a PR is added or removed from the merge queue
+- push events
+  - the last 5 commits are rendered instead of the first 5 (with the amount of commits skipped being indicated)
+  - force-pushes are rendered just like regular pushes (but with a different embed color)
+  - if the commit author and committer are different, both are rendered
+  - tag pushes - rendered just like branch pushes, except only the top-most commit is shown
+  - tag updates are properly rendered
+  - new branches don't generate the "new branch" message - instead the push message mentions that a new branch was pushed
 
 ## some images i guess
 

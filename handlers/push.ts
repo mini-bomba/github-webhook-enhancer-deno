@@ -75,18 +75,31 @@ export default async function handlePush(ctx: RequestCtx): Promise<Response> {
         fields: renderChecks(checks_entry),
         color: event.created ? 0x7289da : 0xe89b00,
       }
-    : {
-        author: {
-          name: event.sender.login,
-          url: event.sender.html_url,
-          icon_url: event.sender.avatar_url,
-        },
-        title: `[${event.repository.full_name}] ${event.commits.length} commit${event.commits.length > 1 ? "s" : ""} ${event.forced ? "force-" : ""}pushed to ${event.created ? "new " : ""}branch ${name}`,
-        url: event.compare,
-        description: `${event.commits.length > 5 ? `**+ ${event.commits.length - 5} commits**\n` : ""}${event.commits.slice(-5).map(formatCommit).join("\n")}`,
-        fields: renderChecks(checks_entry),
-        color: event.forced ? 0xe89b00 : 0x7289da,
-      };
+    : event.created && event.commits.length === 0
+      ? {
+          author: {
+            name: event.sender.login,
+            url: event.sender.html_url,
+            icon_url: event.sender.avatar_url,
+          },
+          title: `[${event.repository.full_name}] New branch ${name} created${event.forced ? " via force-push" : ""}`,
+          url: event.compare,
+          description: `**No new commits pushed, new branch HEAD commit:**\n${formatCommit(event.head_commit)}`,
+          fields: renderChecks(checks_entry),
+          color: event.forced ? 0xe89b00 : 0x7289da,
+        }
+      : {
+          author: {
+            name: event.sender.login,
+            url: event.sender.html_url,
+            icon_url: event.sender.avatar_url,
+          },
+          title: `[${event.repository.full_name}] ${event.commits.length} commit${event.commits.length > 1 ? "s" : ""} ${event.forced ? "force-" : ""}pushed to ${event.created ? "new " : ""}branch ${name}`,
+          url: event.compare,
+          description: `${event.commits.length > 5 ? `**+ ${event.commits.length - 5} commits**\n` : ""}${event.commits.slice(-5).map(formatCommit).join("\n")}`,
+          fields: renderChecks(checks_entry),
+          color: event.forced ? 0xe89b00 : 0x7289da,
+        };
   checks_entry.embed = embed;
   checks_entry.message_id = await sendWebhookMessage(ctx, [embed]);
   checks_entry.updating = false;

@@ -75,16 +75,16 @@ export default async function handlePush(ctx: RequestCtx): Promise<Response> {
         fields: renderChecks(checks_entry),
         color: event.created ? 0x7289da : 0xe89b00,
       }
-    : event.created && event.commits.length === 0
+    : event.commits.length === 0
       ? {
           author: {
             name: event.sender.login,
             url: event.sender.html_url,
             icon_url: event.sender.avatar_url,
           },
-          title: `[${event.repository.full_name}] New branch ${name} created${event.forced ? " via force-push" : ""}`,
+          title: `[${event.repository.full_name}] ${event.created ? `New branch ${name} created${event.forced ? " via force-push" : ""}` : `Branch ${name} ${event.forced ? "force-updated" : "updated"}`}`,
           url: event.compare,
-          description: `**No new commits pushed, new branch HEAD commit:**\n${formatCommit(event.head_commit)}`,
+          description: `**${event.before === "0000000000000000000000000000000000000000" || event.before === event.after ?  "No new commits pushed" : "Bramch was rolled back without pushing new commits"}, new branch HEAD commit:**\n${formatCommit(event.head_commit)}`,
           fields: renderChecks(checks_entry),
           color: event.forced ? 0xe89b00 : 0x7289da,
         }

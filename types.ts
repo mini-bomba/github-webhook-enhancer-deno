@@ -39,3 +39,4 @@ export type PullRequestReviewSubmittedEvent = Action<PullRequestReviewEvent, "su
 export type PullRequestReviewCommentEvent = EventType<"pull-request-review-comment">;
 
 export type CheckRunEvent = EventType<"check-run">;
+export type DeleteEvent = components["schemas"]["webhook-delete"];

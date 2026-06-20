@@ -84,7 +84,7 @@ export default async function handlePush(ctx: RequestCtx): Promise<Response> {
           },
           title: `[${event.repository.full_name}] ${event.created ? `New branch ${name} created${event.forced ? " via force-push" : ""}` : `Branch ${name} ${event.forced ? "force-updated" : "updated"}`}`,
           url: event.compare,
-          description: `**${event.before === "0000000000000000000000000000000000000000" || event.before === event.after ?  "No new commits pushed" : "Bramch was rolled back without pushing new commits"}, new branch HEAD commit:**\n${formatCommit(event.head_commit)}`,
+          description: `**${event.before === "0000000000000000000000000000000000000000" || event.before === event.after ? "No new commits pushed" : "Bramch was rolled back without pushing new commits"}, new branch HEAD commit:**\n${formatCommit(event.head_commit)}`,
           fields: renderChecks(checks_entry),
           color: event.forced ? 0xe89b00 : 0x7289da,
         }
@@ -117,20 +117,28 @@ function renderChecks(checks: PendingChecks): object[] {
   if (checks.checks.size === 0) {
     return [];
   }
-  return [
-    {
-      name: "Checks",
-      value: checks.checks
-        .values()
-        .toArray()
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .map(
-          (check) =>
-            `[\`${checkIcon(check.status)} ${check.name}\`](${check.url})`,
-        )
-        .join(" "),
-    },
-  ];
+  const check_segments = checks.checks
+    .values()
+    .toArray()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(
+      (check) => `[\`${checkIcon(check.status)} ${check.name}\`](${check.url})`,
+    );
+  let current_char_count = 0;
+  const check_fields: string[][] = [[]];
+  for (const segment of check_segments) {
+    current_char_count += segment.length + 1;
+    if (current_char_count > 1000) {
+      check_fields.push([]);
+      current_char_count = segment.length + 1;
+    }
+    check_fields.at(-1)!.push(segment);
+  }
+
+  return check_fields.map((checks, i) => ({
+    name: i === 0 ? "Checks" : "\u00A0",
+    value: checks.join(" "),
+  }));
 }
 
 function checkIcon(status: Check["status"]): string {
